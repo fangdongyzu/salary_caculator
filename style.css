@@ -4,6 +4,7 @@ body {
     background-color: #FFF4E6;
     color: #6B4226;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
@@ -52,4 +53,8 @@ button:hover {
     font-size: 20px;
     font-weight: bold;
     word-wrap: break-word;
+}
+
+p{
+    padding-top: 24px;
 }
