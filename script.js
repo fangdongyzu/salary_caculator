@@ -15,6 +15,7 @@ function calculateSalary() {
 document.getElementById("headcount").addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
         calculateSalary();
+        this.blur();  // 讓輸入框失去焦點
     }
 });
 
