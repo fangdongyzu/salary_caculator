@@ -18,7 +18,7 @@ document.getElementById("headcount").addEventListener("keydown", function(event)
     }
 });
 
-// Clear input and result when input box is re-selected
+// Clear input and result when input box is re-selected 
 document.getElementById("headcount").addEventListener("focus", function() {
     this.value = '';
     document.getElementById("result").textContent = '';
