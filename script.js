@@ -1,6 +1,7 @@
 (function () {
     let entries = JSON.parse(localStorage.getItem("salaryEntries")) || {};
 
+    // Clean malformed entries
     for (let date in entries) {
         if (!entries[date] || typeof entries[date].salary !== 'number') {
             delete entries[date];
@@ -73,6 +74,14 @@
         localStorage.setItem("salaryEntries", JSON.stringify(entries));
         updateDisplay();
         headcountInput.value = '';
+
+        // ☁️ Firebase write
+        if (window.firebaseDB && window.firebaseSet && window.firebaseRef) {
+            const entryRef = window.firebaseRef(window.firebaseDB, 'entries/' + date);
+            window.firebaseSet(entryRef, { count, salary })
+                .then(() => console.log(`✅ 已同步至 Firebase (${date})`))
+                .catch(err => console.error('❌ Firebase 錯誤：', err));
+        }
     };
 
     window.editEntry = function (date) {
@@ -86,6 +95,13 @@
             delete entries[date];
             localStorage.setItem("salaryEntries", JSON.stringify(entries));
             updateDisplay();
+
+            if (window.firebaseDB && window.firebaseSet && window.firebaseRef) {
+                const entryRef = window.firebaseRef(window.firebaseDB, 'entries/' + date);
+                window.firebaseSet(entryRef, null)
+                    .then(() => console.log(`🗑️ 已從 Firebase 刪除 (${date})`))
+                    .catch(err => console.error('❌ Firebase 錯誤：', err));
+            }
         }
     };
 
@@ -104,11 +120,9 @@
             const { count, salary } = entries[date];
             csv += `${formatDateDisplay(date)},${count},${salary}\n`;
         });
-    
-        // 👉 加上 BOM（Byte Order Mark）
-        const BOM = "\uFEFF";
+
+        const BOM = "\uFEFF"; // For Excel compatibility
         const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
-    
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -116,7 +130,6 @@
         a.click();
         URL.revokeObjectURL(url);
     };
-    
 
     headcountInput.addEventListener("keydown", function (event) {
         if (event.key === "Enter") {
