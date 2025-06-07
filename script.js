@@ -27,11 +27,12 @@ const clearBtn = document.getElementById("clearBtn");
 const exportBtn = document.getElementById("exportBtn");
 
 let entries = {};
+let editingDate = null; // 用來判斷是否為編輯模式
 
 // Password check
 function checkPassword() {
   const pwd = prompt("請輸入密碼");
-  return btoa(pwd) === "MTY4"; 
+  return pwd === "168";
 }
 
 // Salary calculation logic
@@ -133,25 +134,23 @@ function deleteEntryFromFirebase(date) {
 function addOrUpdateEntry() {
   const date = dateInput.value;
   const count = parseInt(headcountInput.value);
-  
+
   if (!date || isNaN(count)) {
     alert("請輸入正確的日期和人頭數");
     return;
   }
 
-  // 如果已存在該日期，就禁止新增，提示用戶使用下方按鈕編輯或刪除
-  if (entries[date]) {
+  if (!editingDate && entries[date]) {
     alert("此日期已有紀錄，請使用下方的「編輯」或「刪除」按鈕修改資料");
     return;
   }
 
-  // 若無重複，則新增資料
   entries[date] = { count };
   saveEntryToFirebase(date, count);
   updateDisplay();
   headcountInput.value = '';
+  editingDate = null;
 }
-
 
 function deleteEntry(date) {
   if (!checkPassword()) return;
@@ -223,6 +222,7 @@ entryList.addEventListener("click", e => {
     const entry = entries[date];
     dateInput.value = date;
     headcountInput.value = entry.count;
+    editingDate = date;
   }
 
   if (deleteBtn) {
