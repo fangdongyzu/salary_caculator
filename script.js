@@ -1,3 +1,4 @@
+// Firebase imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-database.js";
 
@@ -27,7 +28,13 @@ const exportBtn = document.getElementById("exportBtn");
 
 let entries = {};
 
-// --- New salary calculation logic ---
+// Password check
+function checkPassword() {
+  const pwd = prompt("請輸入密碼");
+  return pwd === "168";
+}
+
+// Salary calculation logic
 function calculateAllSalaries(entriesByMonth) {
   const dailySalaries = {};
   let total = 0;
@@ -68,16 +75,16 @@ function formatDateDisplay(dateStr) {
 
 function updateDisplay() {
   entryList.innerHTML = "";
-
   const monthly = {};
+  let grandTotal = 0;
+  let totalHeadcount = 0;
+
   for (const date in entries) {
     const [year, month] = date.split("-");
     const key = `${year}-${month}`;
     if (!monthly[key]) monthly[key] = {};
     monthly[key][date] = entries[date];
   }
-
-  let grandTotal = 0;
 
   Object.keys(monthly).sort().forEach(monthKey => {
     const { dailySalaries, total } = calculateAllSalaries(monthly[monthKey]);
@@ -86,6 +93,7 @@ function updateDisplay() {
     Object.keys(dailySalaries).sort().forEach(date => {
       const salary = dailySalaries[date];
       const count = entries[date].count;
+      totalHeadcount += count;
 
       const li = document.createElement("li");
       li.innerHTML = `
@@ -101,7 +109,7 @@ function updateDisplay() {
     });
   });
 
-  totalSalaryDisplay.textContent = "總薪資（含加給）: $" + grandTotal.toLocaleString("zh-Hant-TW");
+  totalSalaryDisplay.textContent = `總人頭數：${totalHeadcount} 人｜總薪資（含加給）: $${grandTotal.toLocaleString("zh-Hant-TW")}`;
 }
 
 function loadEntriesFromFirebase() {
@@ -137,6 +145,7 @@ function addOrUpdateEntry() {
 }
 
 function deleteEntry(date) {
+  if (!checkPassword()) return;
   if (confirm(`確定要刪除 ${formatDateDisplay(date)} 的紀錄嗎？`)) {
     delete entries[date];
     deleteEntryFromFirebase(date);
@@ -146,8 +155,8 @@ function deleteEntry(date) {
 
 function exportToCSV() {
   let csv = "日期,人頭數,薪資\n";
-
   const monthly = {};
+
   for (const date in entries) {
     const [year, month] = date.split("-");
     const key = `${year}-${month}`;
@@ -175,6 +184,7 @@ function exportToCSV() {
 }
 
 function clearAllEntries() {
+  if (!checkPassword()) return;
   if (confirm("確定要清除全部紀錄？")) {
     entries = {};
     set(ref(db, 'entries'), null);
@@ -199,6 +209,7 @@ entryList.addEventListener("click", e => {
   const deleteBtn = target.closest(".delete-btn");
 
   if (editBtn) {
+    if (!checkPassword()) return;
     const date = editBtn.getAttribute("data-date");
     const entry = entries[date];
     dateInput.value = date;
