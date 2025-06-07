@@ -27,8 +27,34 @@ const exportBtn = document.getElementById("exportBtn");
 
 let entries = {};
 
-function calculateDailySalary(x) {
-  return (x <= 360 ? x * 45 : 360 * 45 + (x - 360) * 50) + 2000;
+// --- New salary calculation logic ---
+function calculateAllSalaries(entriesByMonth) {
+  const dailySalaries = {};
+  let total = 0;
+  let cumulative = 0;
+
+  const sortedDates = Object.keys(entriesByMonth).sort();
+
+  sortedDates.forEach(date => {
+    const count = entriesByMonth[date].count;
+    let salary = 0;
+
+    if (cumulative + count <= 360) {
+      salary = count * 45;
+    } else if (cumulative >= 360) {
+      salary = count * 50;
+    } else {
+      const within = 360 - cumulative;
+      const beyond = count - within;
+      salary = within * 45 + beyond * 50;
+    }
+
+    cumulative += count;
+    dailySalaries[date] = salary;
+    total += salary;
+  });
+
+  return { dailySalaries, total: total + 2000 };
 }
 
 function formatDateDisplay(dateStr) {
@@ -42,29 +68,40 @@ function formatDateDisplay(dateStr) {
 
 function updateDisplay() {
   entryList.innerHTML = "";
-  let total = 0;
-  const sortedDates = Object.keys(entries).sort();
 
-  sortedDates.forEach(date => {
-    const data = entries[date];
-    if (!data || typeof data.salary !== 'number') return;
+  const monthly = {};
+  for (const date in entries) {
+    const [year, month] = date.split("-");
+    const key = `${year}-${month}`;
+    if (!monthly[key]) monthly[key] = {};
+    monthly[key][date] = entries[date];
+  }
 
-    total += data.salary;
+  let grandTotal = 0;
 
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <span class="entry-text">
-        ${formatDateDisplay(date)}｜人頭數：${data.count} → 薪資：$${data.salary.toLocaleString("zh-Hant-TW")}
-      </span>
-      <span class="entry-actions">
-        <button class="edit-btn" data-date="${date}">編輯</button>
-        <button class="delete-btn" data-date="${date}">刪除</button>
-      </span>
-    `;
-    entryList.appendChild(li);
+  Object.keys(monthly).sort().forEach(monthKey => {
+    const { dailySalaries, total } = calculateAllSalaries(monthly[monthKey]);
+    grandTotal += total;
+
+    Object.keys(dailySalaries).sort().forEach(date => {
+      const salary = dailySalaries[date];
+      const count = entries[date].count;
+
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <span class="entry-text">
+          ${formatDateDisplay(date)}｜人頭數：${count} → 薪資：$${salary.toLocaleString("zh-Hant-TW")}
+        </span>
+        <span class="entry-actions">
+          <button class="edit-btn" data-date="${date}">編輯</button>
+          <button class="delete-btn" data-date="${date}">刪除</button>
+        </span>
+      `;
+      entryList.appendChild(li);
+    });
   });
 
-  totalSalaryDisplay.textContent = "總薪資: $" + total.toLocaleString("zh-Hant-TW");
+  totalSalaryDisplay.textContent = "總薪資（含加給）: $" + grandTotal.toLocaleString("zh-Hant-TW");
 }
 
 function loadEntriesFromFirebase() {
@@ -75,9 +112,9 @@ function loadEntriesFromFirebase() {
   });
 }
 
-function saveEntryToFirebase(date, count, salary) {
+function saveEntryToFirebase(date, count) {
   const entryRef = ref(db, 'entries/' + date);
-  set(entryRef, { count, salary });
+  set(entryRef, { count });
 }
 
 function deleteEntryFromFirebase(date) {
@@ -93,9 +130,8 @@ function addOrUpdateEntry() {
     return;
   }
 
-  const salary = calculateDailySalary(count);
-  entries[date] = { count, salary };
-  saveEntryToFirebase(date, count, salary);
+  entries[date] = { count };
+  saveEntryToFirebase(date, count);
   updateDisplay();
   headcountInput.value = '';
 }
@@ -110,10 +146,22 @@ function deleteEntry(date) {
 
 function exportToCSV() {
   let csv = "日期,人頭數,薪資\n";
-  const sortedDates = Object.keys(entries).sort();
-  sortedDates.forEach(date => {
-    const { count, salary } = entries[date];
-    csv += `${formatDateDisplay(date)},${count},${salary}\n`;
+
+  const monthly = {};
+  for (const date in entries) {
+    const [year, month] = date.split("-");
+    const key = `${year}-${month}`;
+    if (!monthly[key]) monthly[key] = {};
+    monthly[key][date] = entries[date];
+  }
+
+  Object.keys(monthly).sort().forEach(monthKey => {
+    const { dailySalaries } = calculateAllSalaries(monthly[monthKey]);
+    Object.keys(dailySalaries).sort().forEach(date => {
+      const count = entries[date].count;
+      const salary = dailySalaries[date];
+      csv += `${formatDateDisplay(date)},${count},${salary}\n`;
+    });
   });
 
   const BOM = "\uFEFF";
