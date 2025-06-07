@@ -112,7 +112,7 @@ monthHeader.innerHTML = `
       const item = document.createElement("div");
       item.className = "entry-item";
       item.innerHTML = `
-        <span>${formatDateDisplay(date)}｜人頭數：${count} → 薪資：$${salary.toLocaleString("zh-Hant-TW")}</span>
+        <span>${formatDateDisplay(date)}｜${count}｜ $${salary.toLocaleString("zh-Hant-TW")}</span>
         <span class="entry-actions">
           <button class="edit-btn" data-date="${date}">編輯</button>
           <button class="delete-btn" data-date="${date}">刪除</button>
