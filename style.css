@@ -111,6 +111,15 @@ button:hover {
   background-color: #FFB84D;
 }
 
+.month-header > div {
+  display: flex;
+  flex-direction: column;
+}
+.month-header span {
+  font-weight: bold;
+}
+
+
 .month-body {
   margin-top: 5px;
 }
@@ -166,4 +175,8 @@ button:hover {
 
 #monthlySummary h2 {
   margin-top: 0;
+}
+.month-title {
+  font-size: 22px;
+  font-weight: bold;
 }

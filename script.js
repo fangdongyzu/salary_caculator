@@ -93,10 +93,13 @@ function updateDisplay() {  entryList.innerHTML = "";
     const [year, month] = monthKey.split("-");
     const monthHeader = document.createElement("div");
     monthHeader.className = "month-header";
-    monthHeader.innerHTML = `
-      <span>${year}年${month}月｜人頭數：${monthHeadcount} 人｜總薪資：$${total.toLocaleString("zh-Hant-TW")}</span>
-      <button class="toggle-btn">展開</button>
-    `;
+monthHeader.innerHTML = `
+  <div>
+    <div class="month-title">${year}年${month}月</div>
+    <div>人頭數：${monthHeadcount} 人｜總薪資：$${total.toLocaleString("zh-Hant-TW")}</div>
+  </div>
+  <button class="toggle-btn">展開</button>
+`;
 
     const monthBody = document.createElement("div");
     monthBody.className = "month-body";
