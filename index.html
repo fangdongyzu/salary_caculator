@@ -1,23 +1,33 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>薪資計算器</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>薪資計算器</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-    <div class="container">
-        <h1>薪資計算器</h1>
-        <label for="headcount">請輸入人頭數：</label>
-        <input type="number" id="headcount" placeholder="例如：370">
-        <button onclick="calculateSalary()">計算薪資</button>
-        <div id="result"></div>
-    </div>
-    <script src="script.js"></script>
-</body>
-<p>Designed by Lei Tien Kai</p>
+  <div class="container">
+    <h1>薪資計算器</h1>
 
+    <label for="date">選擇日期：</label>
+    <input type="date" id="date" />
+
+    <label for="headcount">請輸入人頭數：</label>
+    <input type="number" id="headcount" placeholder="例如：370" />
+
+    <button onclick="addOrUpdateEntry()">新增或更新紀錄</button>
+
+    <div class="button-row">
+      <button onclick="exportToCSV()" class="export-btn">匯出 CSV</button>
+      <button onclick="clearAllEntries()" class="clear-btn">清除全部</button>
+    </div>
+
+    <div id="totalSalary"></div>
+
+    <ul id="entryList"></ul>
+  </div>
+
+  <script src="script.js"></script>
+</body>
 </html>
