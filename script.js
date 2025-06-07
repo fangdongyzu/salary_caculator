@@ -70,9 +70,7 @@ function formatDateDisplay(dateStr) {
   });
 }
 
-function updateDisplay() {
-  entryList.innerHTML = "";
-  summaryDiv.innerHTML = "<h2>薪資紀錄表</h2>";
+function updateDisplay() {  entryList.innerHTML = "";
 
   const monthly = {};
   for (const date in entries) {
@@ -82,25 +80,13 @@ function updateDisplay() {
     monthly[key][date] = entries[date];
   }
 
-  const monthTotals = [];
-  let currentMonthTotal = 0;
-  let currentMonthHeadcount = 0;
-
-  Object.keys(monthly).sort().reverse().forEach((monthKey, index) => {
+  Object.keys(monthly).sort().reverse().forEach((monthKey) => {
     const { dailySalaries, total } = calculateAllSalaries(monthly[monthKey]);
     let monthHeadcount = 0;
     for (const date in monthly[monthKey]) {
       monthHeadcount += monthly[monthKey][date].count;
     }
 
-    if (index === 0) {
-      currentMonthTotal = total;
-      currentMonthHeadcount = monthHeadcount;
-    }
-
-    monthTotals.push({ monthKey, total, monthHeadcount });
-
-    // Month collapsible group
     const monthGroup = document.createElement("div");
     monthGroup.className = "month-group";
 
@@ -108,12 +94,13 @@ function updateDisplay() {
     const monthHeader = document.createElement("div");
     monthHeader.className = "month-header";
     monthHeader.innerHTML = `
-      <span>${year}年${month}月</span>
-      <button class="toggle-btn">收合</button>
+      <span>${year}年${month}月｜人頭數：${monthHeadcount} 人｜總薪資：$${total.toLocaleString("zh-Hant-TW")}</span>
+      <button class="toggle-btn">展開</button>
     `;
 
     const monthBody = document.createElement("div");
     monthBody.className = "month-body";
+    monthBody.style.display = "none"; // 預設收合
 
     Object.keys(dailySalaries).sort().reverse().forEach(date => {
       const salary = dailySalaries[date];
@@ -141,16 +128,8 @@ function updateDisplay() {
     monthGroup.appendChild(monthBody);
     entryList.appendChild(monthGroup);
   });
-
-  totalSalaryDisplay.textContent = `本月人頭數：${currentMonthHeadcount} 人｜總薪資（含加給）：$${currentMonthTotal.toLocaleString("zh-Hant-TW")}`;
-
-  monthTotals.forEach(({ monthKey, total, monthHeadcount }) => {
-    const div = document.createElement("div");
-    const [year, month] = monthKey.split("-");
-    div.textContent = `${year}年${month}月｜總人頭數：${monthHeadcount} 人｜總薪資：$${total.toLocaleString("zh-Hant-TW")}`;
-    summaryDiv.appendChild(div);
-  });
 }
+
 
 function loadEntriesFromFirebase() {
   const allEntriesRef = ref(db, 'entries');
