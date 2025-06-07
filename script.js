@@ -17,7 +17,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// DOM elements
+// DOM
 const entryList = document.getElementById("entryList");
 const totalSalaryDisplay = document.getElementById("totalSalary");
 const dateInput = document.getElementById("date");
@@ -25,28 +25,25 @@ const headcountInput = document.getElementById("headcount");
 const addBtn = document.getElementById("addBtn");
 const clearBtn = document.getElementById("clearBtn");
 const exportBtn = document.getElementById("exportBtn");
+const summaryDiv = document.getElementById("monthlySummary");
 
 let entries = {};
-let editingDate = null; // 用來判斷是否為編輯模式
+let editingDate = null;
 
-// Password check
 function checkPassword() {
   const pwd = prompt("請輸入密碼");
   return pwd === "168";
 }
 
-// Salary calculation logic
 function calculateAllSalaries(entriesByMonth) {
   const dailySalaries = {};
   let total = 0;
   let cumulative = 0;
-
   const sortedDates = Object.keys(entriesByMonth).sort();
 
   sortedDates.forEach(date => {
     const count = entriesByMonth[date].count;
     let salary = 0;
-
     if (cumulative + count <= 360) {
       salary = count * 45;
     } else if (cumulative >= 360) {
@@ -56,7 +53,6 @@ function calculateAllSalaries(entriesByMonth) {
       const beyond = count - within;
       salary = within * 45 + beyond * 50;
     }
-
     cumulative += count;
     dailySalaries[date] = salary;
     total += salary;
@@ -76,10 +72,9 @@ function formatDateDisplay(dateStr) {
 
 function updateDisplay() {
   entryList.innerHTML = "";
-  const monthly = {};
-  let grandTotal = 0;
-  let totalHeadcount = 0;
+  summaryDiv.innerHTML = "<h2>薪資紀錄表</h2>";
 
+  const monthly = {};
   for (const date in entries) {
     const [year, month] = date.split("-");
     const key = `${year}-${month}`;
@@ -87,30 +82,74 @@ function updateDisplay() {
     monthly[key][date] = entries[date];
   }
 
-  Object.keys(monthly).sort().forEach(monthKey => {
-    const { dailySalaries, total } = calculateAllSalaries(monthly[monthKey]);
-    grandTotal += total;
+  const monthTotals = [];
+  let currentMonthTotal = 0;
+  let currentMonthHeadcount = 0;
 
-    Object.keys(dailySalaries).sort().forEach(date => {
+  Object.keys(monthly).sort().reverse().forEach((monthKey, index) => {
+    const { dailySalaries, total } = calculateAllSalaries(monthly[monthKey]);
+    let monthHeadcount = 0;
+    for (const date in monthly[monthKey]) {
+      monthHeadcount += monthly[monthKey][date].count;
+    }
+
+    if (index === 0) {
+      currentMonthTotal = total;
+      currentMonthHeadcount = monthHeadcount;
+    }
+
+    monthTotals.push({ monthKey, total, monthHeadcount });
+
+    // Month collapsible group
+    const monthGroup = document.createElement("div");
+    monthGroup.className = "month-group";
+
+    const [year, month] = monthKey.split("-");
+    const monthHeader = document.createElement("div");
+    monthHeader.className = "month-header";
+    monthHeader.innerHTML = `
+      <span>${year}年${month}月</span>
+      <button class="toggle-btn">收合</button>
+    `;
+
+    const monthBody = document.createElement("div");
+    monthBody.className = "month-body";
+
+    Object.keys(dailySalaries).sort().reverse().forEach(date => {
       const salary = dailySalaries[date];
       const count = entries[date].count;
-      totalHeadcount += count;
 
-      const li = document.createElement("li");
-      li.innerHTML = `
-        <span class="entry-text">
-          ${formatDateDisplay(date)}｜人頭數：${count} → 薪資：$${salary.toLocaleString("zh-Hant-TW")}
-        </span>
+      const item = document.createElement("div");
+      item.className = "entry-item";
+      item.innerHTML = `
+        <span>${formatDateDisplay(date)}｜人頭數：${count} → 薪資：$${salary.toLocaleString("zh-Hant-TW")}</span>
         <span class="entry-actions">
           <button class="edit-btn" data-date="${date}">編輯</button>
           <button class="delete-btn" data-date="${date}">刪除</button>
         </span>
       `;
-      entryList.appendChild(li);
+      monthBody.appendChild(item);
     });
+
+    monthHeader.querySelector(".toggle-btn").addEventListener("click", () => {
+      const isVisible = monthBody.style.display !== "none";
+      monthBody.style.display = isVisible ? "none" : "block";
+      monthHeader.querySelector(".toggle-btn").textContent = isVisible ? "展開" : "收合";
+    });
+
+    monthGroup.appendChild(monthHeader);
+    monthGroup.appendChild(monthBody);
+    entryList.appendChild(monthGroup);
   });
 
-  totalSalaryDisplay.textContent = `總人頭數：${totalHeadcount} 人｜總薪資（含加給）: $${grandTotal.toLocaleString("zh-Hant-TW")}`;
+  totalSalaryDisplay.textContent = `本月人頭數：${currentMonthHeadcount} 人｜總薪資（含加給）：$${currentMonthTotal.toLocaleString("zh-Hant-TW")}`;
+
+  monthTotals.forEach(({ monthKey, total, monthHeadcount }) => {
+    const div = document.createElement("div");
+    const [year, month] = monthKey.split("-");
+    div.textContent = `${year}年${month}月｜總人頭數：${monthHeadcount} 人｜總薪資：$${total.toLocaleString("zh-Hant-TW")}`;
+    summaryDiv.appendChild(div);
+  });
 }
 
 function loadEntriesFromFirebase() {
@@ -200,7 +239,7 @@ function clearAllEntries() {
   }
 }
 
-// Event listeners
+// Events
 addBtn.addEventListener("click", addOrUpdateEntry);
 clearBtn.addEventListener("click", clearAllEntries);
 exportBtn.addEventListener("click", exportToCSV);
