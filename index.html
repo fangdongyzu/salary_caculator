@@ -16,42 +16,17 @@
     <label for="headcount">請輸入人頭數：</label>
     <input type="number" id="headcount" placeholder="例如：370" />
 
-    <button onclick="addOrUpdateEntry()">新增或更新紀錄</button>
+    <button id="addBtn">新增或更新紀錄</button>
 
     <div class="button-row">
-      <button onclick="exportToCSV()" class="export-btn">匯出 CSV</button>
-      <button onclick="clearAllEntries()" class="clear-btn">清除全部</button>
+      <button id="exportBtn" class="export-btn">匯出 CSV</button>
+      <button id="clearBtn" class="clear-btn">清除全部</button>
     </div>
 
     <div id="totalSalary"></div>
     <ul id="entryList"></ul>
   </div>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyD06zkrG-9k-u-0HaxyAwM-5cIKq6t0zDg",
-      authDomain: "salary-c8a11.firebaseapp.com",
-      databaseURL: "https://salary-c8a11-default-rtdb.firebaseio.com",
-      projectId: "salary-c8a11",
-      storageBucket: "salary-c8a11.appspot.com",
-      messagingSenderId: "859097557221",
-      appId: "1:859097557221:web:3e20f2c317cff448e3cc0c",
-      measurementId: "G-0F791FF30T"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    // Expose Firebase methods globally
-    window.firebaseDB = db;
-    window.firebaseRef = ref;
-    window.firebaseSet = set;
-  </script>
-
-  <script src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
