@@ -96,7 +96,7 @@ function updateDisplay() {  entryList.innerHTML = "";
 monthHeader.innerHTML = `
   <div>
     <div class="month-title">${year}年${month}月</div>
-    <div>人頭數：${monthHeadcount} 人｜總薪資：$${total.toLocaleString("zh-Hant-TW")}</div>
+    <div>${monthHeadcount} 人｜$${total.toLocaleString("zh-Hant-TW")}</div>
   </div>
   <button class="toggle-btn">展開</button>
 `;
