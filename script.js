@@ -31,7 +31,7 @@ let entries = {};
 // Password check
 function checkPassword() {
   const pwd = prompt("請輸入密碼");
-  return pwd === "168";
+  return btoa(pwd) === "MTY4"; 
 }
 
 // Salary calculation logic
